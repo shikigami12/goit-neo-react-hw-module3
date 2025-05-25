@@ -1,8 +1,9 @@
 .container {
-  display: flex;
-  flex-direction: column;
-  width: 700px;
-  background: white;
-  color: #1a1a1a;
-  padding: 50px;
+    display: flex;
+    flex-direction: column;
+    width: 1024px;
+    background: white;
+    color: #1a1a1a;
+    gap: 20px;
+    padding: 10px;
 }

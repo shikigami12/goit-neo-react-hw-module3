@@ -1,72 +1,82 @@
-import { Description } from './components/Description/Description.tsx';
-import { Feedback } from './components/Feedback/Feedback.tsx';
-import { Options } from './components/Options/Options.tsx';
-import { Notification } from './components/Notification/Notification.tsx';
-import { OptionsEnum } from './components/Options/OptionsEnum.tsx'; // Assuming this enum exists
-
 import css from './App.module.css';
+
+import { ContactForm } from './components/ContactForm/ContactForm.tsx';
+import { SearchBox } from './components/SearchBox/SearchBox.tsx';
+import { ContactList } from './components/ContactList/ContactList.tsx';
+
+import contactsData from './data/contacts.json';
 import { useEffect, useState } from 'react';
 
-interface FeedbacksState {
-  good: number;
-  neutral: number;
-  bad: number;
+interface Contact {
+  id: string;
+  name: string;
+  phone: string;
+}
+
+interface ContactListData {
+  contacts: Contact[];
 }
 
 function App() {
-  const storageKey = 'feedbacks';
-  const [feedbacks, setFeedbacks] = useState<FeedbacksState>(() => {
+  const storageKey = 'phoneBook';
+  const [contacts, setContacts] = useState<ContactListData>(() => {
     const storedValue = window.localStorage.getItem(storageKey);
     if (storedValue) {
       try {
-        return JSON.parse(storedValue) as FeedbacksState;
+        return JSON.parse(storedValue) as ContactListData;
       } catch (error) {
-        console.error('Failed to parse feedbacks from localStorage:', error);
+        console.error('Failed to parse contacts from localStorage:', error);
       }
     }
-    return { good: 0, neutral: 0, bad: 0 };
+
+    return {
+      contacts:
+        contactsData.map(contact => ({
+          id: contact.id,
+          name: contact.name,
+          phone: contact.number,
+        })) || [],
+    };
   });
 
-  useEffect(() => {
-    window.localStorage.setItem(storageKey, JSON.stringify(feedbacks));
-  }, [feedbacks]);
+  const [filter, setFilter] = useState('');
 
-  const updateFeedback = (feedbackType: string) => {
-    setFeedbacks(currentFeedbacks => {
-      switch (feedbackType) {
-        case OptionsEnum.GOOD:
-          return { ...currentFeedbacks, good: currentFeedbacks.good + 1 };
-        case OptionsEnum.NEUTRAL:
-          return { ...currentFeedbacks, neutral: currentFeedbacks.neutral + 1 };
-        case OptionsEnum.BAD:
-          return { ...currentFeedbacks, bad: currentFeedbacks.bad + 1 };
-        case OptionsEnum.RESET:
-          return { good: 0, neutral: 0, bad: 0 };
-        default:
-          return currentFeedbacks;
-      }
-    });
+  useEffect(() => {
+    window.localStorage.setItem(storageKey, JSON.stringify(contacts));
+  }, [contacts, storageKey]);
+
+  const handleFilterChange = (value: string) => {
+    setFilter(value);
   };
 
-  const totalFeedback = feedbacks.good + feedbacks.neutral + feedbacks.bad;
+  const handleAddContact = (newContact: Contact) => {
+    setContacts(prevContacts => ({
+      contacts: [...prevContacts.contacts, newContact],
+    }));
+  };
+
+  const handleDeleteContact = (id: string) => {
+    setContacts(prevContacts => ({
+      contacts: prevContacts.contacts.filter(contact => contact.id !== id),
+    }));
+  };
+
+  const filteredContacts = contacts.contacts.filter(contact =>
+    contact.name.toLowerCase().includes(filter.toLowerCase())
+  );
 
   return (
     <>
       <div className={css.container}>
-        <Description />
-        <Options onClick={updateFeedback} resetEnabled={totalFeedback > 0} />
-        {totalFeedback > 0 && (
-          <Feedback
-            good={feedbacks.good}
-            bad={feedbacks.bad}
-            neutral={feedbacks.neutral}
-            total={totalFeedback}
-            positivePercentage={Math.round(
-              (feedbacks.good / totalFeedback) * 100
-            )}
+        <h1>Phonebook</h1>
+        <ContactForm onAddContact={handleAddContact} />
+        <SearchBox value={filter} onChange={handleFilterChange} />
+        {contacts && (
+          <ContactList
+            contacts={filteredContacts}
+            onDelete={handleDeleteContact}
           />
         )}
-        {totalFeedback === 0 && <Notification>No feedback yet.</Notification>}
       </div>
     </>
   );
