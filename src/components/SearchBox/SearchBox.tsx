@@ -8,16 +8,18 @@ interface SearchBoxProps {
 
 export const SearchBox = ({ value, onChange }: SearchBoxProps) => {
   const inputId = useId();
-  return <>
-    <div className={css.container}>
-      <label htmlFor={inputId}>Find contacts by name</label>
-      <input
-        id={inputId}
-        type="text"
-        placeholder="Search contacts by name"
-        value={value}
-        onChange={e => onChange(e.target.value)}
-      />
-    </div>
-  </>;
+  return (
+    <>
+      <div className={css.container}>
+        <label htmlFor={inputId}>Find contacts by name</label>
+        <input
+          id={inputId}
+          type="text"
+          placeholder="Search contacts by name"
+          value={value}
+          onChange={e => onChange(e.target.value)}
+        />
+      </div>
+    </>
+  );
 };
